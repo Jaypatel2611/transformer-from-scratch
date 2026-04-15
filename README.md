@@ -305,5 +305,3 @@ This implementation was created as an educational resource for understanding tra
 ---
 
 **Built with clarity, precision, and educational value in mind.**
-#   t r a n s f o r m e r - f r o m - s c r a t c h  
- 
