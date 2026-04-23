@@ -1,0 +1,89 @@
+name: CI - Tests & Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with pytest
+        run: |
+          pytest tests/ -v --tb=short --cov=src --cov-report=term-missing
+
+      - name: Check import behavior
+        run: |
+          python -c "from src import GPTConfig, GPT2, generate, CausalSelfAttention, Block, MLP; print('✓ All imports successful')"
+
+      - name: Validate module structure
+        run: |
+          python -c "import src; print('✓ Package structure valid')"
+
+      - name: Test example scripts (import check)
+        run: |
+          python -c "import examples.transformer_using_library_demo; print('✓ Example import check passed')"
+          python -c "import examples.transformer_from_scratch_components; print('✓ Components example import check passed')"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint flake8
+
+      - name: Lint with flake8
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 src tests examples --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 src tests examples --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+        continue-on-error: true
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mypy
+
+      - name: Type check with mypy (optional)
+        run: |
+          mypy src --ignore-missing-imports --no-error-summary 2>&1 | head -20
+        continue-on-error: true

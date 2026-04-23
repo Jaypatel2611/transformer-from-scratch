@@ -9,14 +9,8 @@ This script shows how to:
 Run with: python -m examples.transformer_using_library_demo
 """
 
-import sys
-from pathlib import Path
-
-# Add parent directory to path so we can import src
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 import torch
-from src.using_library import GPTConfig, GPT2, generate
+from src import GPTConfig, GPT2, generate
 
 
 def main():

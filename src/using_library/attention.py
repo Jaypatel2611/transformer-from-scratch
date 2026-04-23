@@ -68,24 +68,24 @@ class CausalSelfAttention(nn.Module):
         # Compute attention scores: Q @ K.T / sqrt(head_dim)
         # (B, n_head, T, head_dim) @ (B, n_head, head_dim, T) -> (B, n_head, T, T)
         scores = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(self.head_dim))
-        
+
         # Apply causal mask: set future positions to -inf before softmax
         # Access the registered buffer and slice it to match current sequence length T
         mask = self.bias[:, :, :T, :T]
         scores = scores.masked_fill(mask == 0, float('-inf'))
-        
+
         # Apply softmax to convert scores to attention weights
         weights = F.softmax(scores, dim=-1)
-        
+
         # Apply attention to values
         # (B, n_head, T, T) @ (B, n_head, T, head_dim) -> (B, n_head, T, head_dim)
         y = weights @ v
-        
+
         # Merge heads back together
         # (B, n_head, T, head_dim) -> (B, T, n_head, head_dim) -> (B, T, C)
         y = y.transpose(1, 2).contiguous().view(B, T, C)
         
         # Apply output projection and dropout
         y = self.resid_drop(self.c_proj(y))
-        
+
         return y
