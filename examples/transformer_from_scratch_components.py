@@ -20,3 +20,4 @@ if __name__ == "__main__":
     
     # Execute it as a script
     runpy.run_path(str(script_path), run_name="__main__")
+    
